@@ -27,6 +27,13 @@ public class FriendshipService {
         FriendConnection connection = new FriendConnection(req.getFriends());
         long count = friendConnectionRepository.countByUserAAndUserB(connection.getUserA(), connection.getUserB());
         if (count == 0) {
+            FriendshipFilter filter1 = friendshipFilterRepository.findBySubjectAndObject(connection.getUserA(), connection.getUserB());
+            FriendshipFilter filter2 = friendshipFilterRepository.findBySubjectAndObject(connection.getUserB(), connection.getUserA());
+            if ((filter1 != null && filter1.getFilterType() == FilterType.BLOCK) ||
+                    (filter2 != null && filter2.getFilterType() == FilterType.BLOCK)) {
+                log.error("there is a block relationship between the two user");
+                throw new ConnectionRejectException("there is a block relationship between the two user");
+            }
             FriendConnection savedConnection = friendConnectionRepository.save(connection);
             log.info("Created new friend connection {}", savedConnection);
         } else {

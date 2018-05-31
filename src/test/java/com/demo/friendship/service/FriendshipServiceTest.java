@@ -57,6 +57,40 @@ public class FriendshipServiceTest {
     }
 
     @Test
+    public void testCreateConnectionSuccessfulWhenNoBlocked() throws Exception {
+        FriendshipFilter blockFilter = new FriendshipFilter("henry@example.com", "andy@example.com", FilterType.SUBS);
+        friendshipFilterRepository.save(blockFilter);
+
+        CreateFriendshipConnectionReq req1 = CreateFriendshipConnectionReq.of(Arrays.asList("andy@example.com", "henry@example.com"));
+        try {
+            friendshipService.createConnection(req1);
+        } catch (Exception e) {
+            fail("It should not throw ConnectionRejectException");
+        }
+
+        List<String> andyFriends = friendConnectionRepository.getYourFriendConnections("andy@example.com");
+        assertEquals(1, andyFriends.size());
+        assertEquals("henry@example.com", andyFriends.get(0));
+    }
+
+    @Test
+    public void testCreateConnectionFailedWhenBlocked() throws Exception {
+        FriendshipFilter blockFilter = new FriendshipFilter("henry@example.com", "andy@example.com", FilterType.BLOCK);
+        friendshipFilterRepository.save(blockFilter);
+
+        CreateFriendshipConnectionReq req1 = CreateFriendshipConnectionReq.of(Arrays.asList("andy@example.com", "henry@example.com"));
+        try {
+            friendshipService.createConnection(req1);
+            fail("It should throw ConnectionRejectException");
+        } catch (Exception e) {
+            assertTrue(e instanceof ConnectionRejectException);
+        }
+
+        List<String> andyFriends = friendConnectionRepository.getYourFriendConnections("andy@example.com");
+        assertEquals(0, andyFriends.size());
+    }
+
+    @Test
     public void testCreateSubscriptionWithoutOldFilter() throws Exception {
         friendshipService.createSubscription(new RelationshipFilterReq("andy@example.com", "henry@example.com"));
         FriendshipFilter updated = friendshipFilterRepository.findBySubjectAndObject("andy@example.com", "henry@example.com");

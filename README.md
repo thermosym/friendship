@@ -123,6 +123,7 @@ Suppose "andy@example.com" blocks "john@example.com":
 
 - if they are connected as friends, then "andy" will no longer receive notifications from "john"
 - if they are not connected as friends, then no new friends connection can be added
+- (Potential requirement) if "andy" wants to connect to "john", the new connection will be added, and "andy" will no longer block "john"
 
 The API should receive the following JSON request:
 
