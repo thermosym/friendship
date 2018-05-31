@@ -1,10 +1,7 @@
 package com.demo.friendship.controller;
 
 import com.demo.friendship.controller.exception.ConnectionRejectException;
-import com.demo.friendship.controller.message.BaseResp;
-import com.demo.friendship.controller.message.CreateFriendshipConnectionReq;
-import com.demo.friendship.controller.message.ErrorResp;
-import com.demo.friendship.controller.message.GetFriendsResp;
+import com.demo.friendship.controller.message.*;
 import com.demo.friendship.service.FriendshipService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +11,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -33,7 +31,7 @@ public class FriendshipController {
     private FriendshipService friendshipService;
 
     @RequestMapping(value = "/connection", method = RequestMethod.POST, consumes = APPLICATION_JSON_UTF8_VALUE, produces = APPLICATION_JSON_UTF8_VALUE)
-    public DeferredResult<BaseResp> registerAccount(@RequestBody CreateFriendshipConnectionReq req) {
+    public DeferredResult<BaseResp> registerAccount(@Valid @RequestBody CreateFriendshipConnectionReq req) {
         req.validate();
         DeferredResult<BaseResp> deferredResult = new DeferredResult<>();
         CompletableFuture.runAsync(() -> {
@@ -48,11 +46,11 @@ public class FriendshipController {
         return deferredResult;
     }
 
-    @RequestMapping(value = "/connection/all", method = RequestMethod.GET, produces = APPLICATION_JSON_UTF8_VALUE)
-    public DeferredResult<BaseResp> getAllFriends(@NotBlank @RequestParam String user) {
+    @RequestMapping(value = "/connection/all", method = RequestMethod.POST, produces = APPLICATION_JSON_UTF8_VALUE)
+    public DeferredResult<BaseResp> getAllFriends(@Valid @RequestBody GetAllFriendsReq req) {
         DeferredResult<BaseResp> deferredResult = new DeferredResult<>();
         CompletableFuture.runAsync(() -> {
-            List<String> allConnections = friendshipService.getAllUserConnections(user);
+            List<String> allConnections = friendshipService.getAllUserConnections(req.getEmail());
             GetFriendsResp resp = new GetFriendsResp();
             resp.setSuccess(true);
             resp.setFriends(allConnections);
@@ -62,4 +60,18 @@ public class FriendshipController {
         return deferredResult;
     }
 
+    @RequestMapping(value = "/connection/common", method = RequestMethod.POST, produces = APPLICATION_JSON_UTF8_VALUE)
+    public DeferredResult<BaseResp> getCommonFriends(@Valid @RequestBody GetAllCommonFriendsReq req) {
+        req.validate();
+        DeferredResult<BaseResp> deferredResult = new DeferredResult<>();
+        CompletableFuture.runAsync(() -> {
+            List<String> allConnections = friendshipService.getCommonConnections(req);
+            GetFriendsResp resp = new GetFriendsResp();
+            resp.setSuccess(true);
+            resp.setFriends(allConnections);
+            resp.setCount(allConnections.size());
+            deferredResult.setResult(resp);
+        }, taskExecutor);
+        return deferredResult;
+    }
 }

@@ -67,4 +67,29 @@ public class FriendConnectionRepositoryTest {
         assertTrue(friendsList.contains("common@example.com"));
         assertTrue(friendsList.contains("henry@example.com"));
     }
+
+    @Test
+    public void testGetCommonFriendConnectionWhenHasOneCommonFriend() {
+        // set up one more common friends
+        FriendConnection con1 = new FriendConnection(ImmutableList.of("john@example.com", "henry@example.com"));
+        friendConnectionRepository.save(con1);
+
+        List<String> commonConnections = friendConnectionRepository.getCommonConnections("andy@example.com", "john@example.com");
+        assertEquals(2, commonConnections.size());
+        assertTrue(commonConnections.contains("common@example.com"));
+        assertTrue(commonConnections.contains("henry@example.com"));
+    }
+
+    @Test
+    public void testGetCommonFriendConnectionWhenHasTwoCommonFriends() {
+        List<String> commonConnections = friendConnectionRepository.getCommonConnections("andy@example.com", "john@example.com");
+        assertEquals(1, commonConnections.size());
+        assertEquals("common@example.com", commonConnections.get(0));
+    }
+
+    @Test
+    public void testGetCommonFriendConnectionWhenHasNoCommonFriend() {
+        List<String> commonConnections = friendConnectionRepository.getCommonConnections("andy@example.com", "henry@example.com");
+        assertEquals(0, commonConnections.size());
+    }
 }

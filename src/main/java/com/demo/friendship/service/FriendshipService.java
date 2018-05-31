@@ -2,6 +2,7 @@ package com.demo.friendship.service;
 
 import com.demo.friendship.controller.exception.ConnectionRejectException;
 import com.demo.friendship.controller.message.CreateFriendshipConnectionReq;
+import com.demo.friendship.controller.message.GetAllCommonFriendsReq;
 import com.demo.friendship.repository.FriendConnection;
 import com.demo.friendship.repository.FriendConnectionRepository;
 import org.slf4j.Logger;
@@ -34,5 +35,11 @@ public class FriendshipService {
     public List<String> getAllUserConnections(String user) {
         List<String> allConnections = friendConnectionRepository.getYourFriendConnections(user);
         return allConnections;
+    }
+
+    public List<String> getCommonConnections(GetAllCommonFriendsReq req) {
+        List<String> friends = req.getFriends();
+        List<String> commonConnections = friendConnectionRepository.getCommonConnections(friends.get(0), friends.get(1));
+        return commonConnections;
     }
 }
