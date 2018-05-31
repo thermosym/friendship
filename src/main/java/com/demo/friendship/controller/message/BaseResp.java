@@ -5,6 +5,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 public class BaseResp {
     protected boolean success;
+
     private static final BaseResp ok = new BaseResp(true);
 
     public boolean isSuccess() {

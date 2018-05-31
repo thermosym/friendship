@@ -8,6 +8,13 @@ public class SendUpdateResp extends BaseResp {
 
     private List<String> recipients;
 
+    public SendUpdateResp() {}
+
+    public SendUpdateResp(List<String> recipients) {
+        super(true);
+        this.recipients = recipients;
+    }
+
     public List<String> getRecipients() {
         return recipients;
     }
