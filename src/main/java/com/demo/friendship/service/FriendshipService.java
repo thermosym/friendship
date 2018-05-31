@@ -8,6 +8,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Component
 public class FriendshipService {
@@ -16,6 +19,7 @@ public class FriendshipService {
     @Autowired
     private FriendConnectionRepository friendConnectionRepository;
 
+    @Transactional(rollbackFor = Exception.class)
     public void createConnection(CreateFriendshipConnectionReq req) throws ConnectionRejectException {
         FriendConnection connection = new FriendConnection(req.getFriends());
         FriendConnection existingConnection = friendConnectionRepository.findFirstByUserAAndUserB(connection.getUserA(), connection.getUserB());
@@ -25,5 +29,10 @@ public class FriendshipService {
         } else {
             log.info("Duplicated friend connection found, no need to create");
         }
+    }
+
+    public List<String> getAllUserConnections(String user) {
+        List<String> allConnections = friendConnectionRepository.getYourFriendConnections(user);
+        return allConnections;
     }
 }
