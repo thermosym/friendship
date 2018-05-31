@@ -3,8 +3,8 @@ package com.demo.friendship.service;
 import com.demo.friendship.controller.exception.ConnectionRejectException;
 import com.demo.friendship.controller.message.CreateFriendshipConnectionReq;
 import com.demo.friendship.controller.message.GetAllCommonFriendsReq;
-import com.demo.friendship.repository.FriendConnection;
-import com.demo.friendship.repository.FriendConnectionRepository;
+import com.demo.friendship.controller.message.RelationshipFilterReq;
+import com.demo.friendship.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +19,8 @@ public class FriendshipService {
 
     @Autowired
     private FriendConnectionRepository friendConnectionRepository;
+    @Autowired
+    private FriendshipFilterRepository friendshipFilterRepository;
 
     @Transactional(rollbackFor = Exception.class)
     public void createConnection(CreateFriendshipConnectionReq req) throws ConnectionRejectException {
@@ -41,5 +43,26 @@ public class FriendshipService {
         List<String> friends = req.getFriends();
         List<String> commonConnections = friendConnectionRepository.getCommonConnections(friends.get(0), friends.get(1));
         return commonConnections;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void createSubscription(RelationshipFilterReq req) {
+        updateFilter(req.getRequestor(), req.getTarget(), FilterType.SUBS);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void blockUserUpdate(RelationshipFilterReq req) {
+        updateFilter(req.getRequestor(), req.getTarget(), FilterType.BLOCK);
+    }
+
+    void updateFilter(String requestor, String target, FilterType filterType) {
+        FriendshipFilter existingFilter = friendshipFilterRepository.findBySubjectAndObject(requestor, target);
+        if (existingFilter != null) {
+            existingFilter.setFilterType(filterType);
+            friendshipFilterRepository.save(existingFilter);
+        } else {
+            FriendshipFilter filter = new FriendshipFilter(requestor, target, filterType);
+            friendshipFilterRepository.save(filter);
+        }
     }
 }

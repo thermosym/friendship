@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -46,7 +45,7 @@ public class FriendshipController {
         return deferredResult;
     }
 
-    @RequestMapping(value = "/connection/all", method = RequestMethod.POST, produces = APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(value = "/connection/all", method = RequestMethod.POST, consumes = APPLICATION_JSON_UTF8_VALUE, produces = APPLICATION_JSON_UTF8_VALUE)
     public DeferredResult<BaseResp> getAllFriends(@Valid @RequestBody GetAllFriendsReq req) {
         DeferredResult<BaseResp> deferredResult = new DeferredResult<>();
         CompletableFuture.runAsync(() -> {
@@ -60,7 +59,7 @@ public class FriendshipController {
         return deferredResult;
     }
 
-    @RequestMapping(value = "/connection/common", method = RequestMethod.POST, produces = APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(value = "/connection/common", method = RequestMethod.POST, consumes = APPLICATION_JSON_UTF8_VALUE, produces = APPLICATION_JSON_UTF8_VALUE)
     public DeferredResult<BaseResp> getCommonFriends(@Valid @RequestBody GetAllCommonFriendsReq req) {
         req.validate();
         DeferredResult<BaseResp> deferredResult = new DeferredResult<>();
@@ -71,6 +70,26 @@ public class FriendshipController {
             resp.setFriends(allConnections);
             resp.setCount(allConnections.size());
             deferredResult.setResult(resp);
+        }, taskExecutor);
+        return deferredResult;
+    }
+
+    @RequestMapping(value = "/subscribe", method = RequestMethod.POST, consumes = APPLICATION_JSON_UTF8_VALUE, produces = APPLICATION_JSON_UTF8_VALUE)
+    public DeferredResult<BaseResp> subscribeUpdate(@Valid @RequestBody RelationshipFilterReq req) {
+        DeferredResult<BaseResp> deferredResult = new DeferredResult<>();
+        CompletableFuture.runAsync(() -> {
+            friendshipService.createSubscription(req);
+            deferredResult.setResult(BaseResp.ok());
+        }, taskExecutor);
+        return deferredResult;
+    }
+
+    @RequestMapping(value = "/block", method = RequestMethod.POST, consumes = APPLICATION_JSON_UTF8_VALUE, produces = APPLICATION_JSON_UTF8_VALUE)
+    public DeferredResult<BaseResp> blockUserUpdate(@Valid @RequestBody RelationshipFilterReq req) {
+        DeferredResult<BaseResp> deferredResult = new DeferredResult<>();
+        CompletableFuture.runAsync(() -> {
+            friendshipService.blockUserUpdate(req);
+            deferredResult.setResult(BaseResp.ok());
         }, taskExecutor);
         return deferredResult;
     }

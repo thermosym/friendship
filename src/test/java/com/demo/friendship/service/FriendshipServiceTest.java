@@ -3,7 +3,11 @@ package com.demo.friendship.service;
 import com.demo.friendship.App;
 import com.demo.friendship.controller.exception.ConnectionRejectException;
 import com.demo.friendship.controller.message.CreateFriendshipConnectionReq;
+import com.demo.friendship.controller.message.RelationshipFilterReq;
+import com.demo.friendship.repository.FilterType;
 import com.demo.friendship.repository.FriendConnectionRepository;
+import com.demo.friendship.repository.FriendshipFilter;
+import com.demo.friendship.repository.FriendshipFilterRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +32,8 @@ public class FriendshipServiceTest {
     private FriendshipService friendshipService;
     @Autowired
     private FriendConnectionRepository friendConnectionRepository;
+    @Autowired
+    private FriendshipFilterRepository friendshipFilterRepository;
 
     @Test
     public void testCreateConnectionSuccessfully() throws Exception {
@@ -48,5 +54,37 @@ public class FriendshipServiceTest {
         List<String> andyFriends = friendConnectionRepository.getYourFriendConnections("andy@example.com");
         assertEquals(1, andyFriends.size());
         assertEquals("henry@example.com", andyFriends.get(0));
+    }
+
+    @Test
+    public void testCreateSubscriptionWithoutOldFilter() throws Exception {
+        friendshipService.createSubscription(new RelationshipFilterReq("andy@example.com", "henry@example.com"));
+        FriendshipFilter updated = friendshipFilterRepository.findBySubjectAndObject("andy@example.com", "henry@example.com");
+        assertEquals(FilterType.SUBS, updated.getFilterType());
+    }
+
+    @Test
+    public void testCreateSubscriptionWillReplaceOldBlockFilter() throws Exception {
+        FriendshipFilter blockFilter = new FriendshipFilter("andy@example.com", "henry@example.com", FilterType.BLOCK);
+        friendshipFilterRepository.save(blockFilter);
+        friendshipService.createSubscription(new RelationshipFilterReq("andy@example.com", "henry@example.com"));
+        FriendshipFilter updated = friendshipFilterRepository.findBySubjectAndObject("andy@example.com", "henry@example.com");
+        assertEquals(FilterType.SUBS, updated.getFilterType());
+    }
+
+    @Test
+    public void testBlockUserWithoutOldFilter() throws Exception {
+        friendshipService.blockUserUpdate(new RelationshipFilterReq("andy@example.com", "henry@example.com"));
+        FriendshipFilter updated = friendshipFilterRepository.findBySubjectAndObject("andy@example.com", "henry@example.com");
+        assertEquals(FilterType.BLOCK, updated.getFilterType());
+    }
+
+    @Test
+    public void testBlockUserWillReplaceOldSubscriptionFilter() throws Exception {
+        FriendshipFilter blockFilter = new FriendshipFilter("andy@example.com", "henry@example.com", FilterType.SUBS);
+        friendshipFilterRepository.save(blockFilter);
+        friendshipService.blockUserUpdate(new RelationshipFilterReq("andy@example.com", "henry@example.com"));
+        FriendshipFilter updated = friendshipFilterRepository.findBySubjectAndObject("andy@example.com", "henry@example.com");
+        assertEquals(FilterType.BLOCK, updated.getFilterType());
     }
 }
