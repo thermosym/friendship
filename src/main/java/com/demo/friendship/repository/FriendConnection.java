@@ -52,7 +52,7 @@ public class FriendConnection {
             throw new RequestValidationException("FriendConnection initialization error, users size should be 2");
         }
         List<String> orderedUsers = new ArrayList<>(users);
-        Collections.sort(orderedUsers);
+        Collections.sort(orderedUsers); // to make sure the order always same
         this.userA = orderedUsers.get(0);
         this.userB = orderedUsers.get(1);
     }

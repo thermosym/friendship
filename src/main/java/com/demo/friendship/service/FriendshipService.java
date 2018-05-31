@@ -1,9 +1,7 @@
 package com.demo.friendship.service;
 
 import com.demo.friendship.controller.exception.ConnectionRejectException;
-import com.demo.friendship.controller.message.CreateFriendshipConnectionReq;
-import com.demo.friendship.controller.message.GetAllCommonFriendsReq;
-import com.demo.friendship.controller.message.RelationshipFilterReq;
+import com.demo.friendship.controller.message.*;
 import com.demo.friendship.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 public class FriendshipService {
@@ -71,5 +73,30 @@ public class FriendshipService {
             FriendshipFilter filter = new FriendshipFilter(requestor, target, filterType);
             friendshipFilterRepository.save(filter);
         }
+    }
+
+    public SendUpdateResp getUpdateRecipients(SendUpdateReq req) {
+        List<FriendshipFilter> objectFilters = friendshipFilterRepository.findByObject(req.getSender());
+        Set<String> blockSet = getUserSetByFilterType(objectFilters, FilterType.BLOCK);
+        Set<String> subsSet = getUserSetByFilterType(objectFilters, FilterType.SUBS);
+        List<String> yourFriends = friendConnectionRepository.getYourFriendConnections(req.getSender());
+        Set<String> mentionedUsers = MentionUserHelper.extractUsers(req.getText());
+
+        Set<String> recipientSet = new HashSet<>();
+        recipientSet.addAll(subsSet);
+        recipientSet.addAll(yourFriends);
+        recipientSet.addAll(mentionedUsers);
+        recipientSet.removeAll(blockSet);
+
+        SendUpdateResp resp = new SendUpdateResp();
+        resp.setRecipients(new ArrayList<>(recipientSet));
+        return resp;
+    }
+
+    private Set<String> getUserSetByFilterType(List<FriendshipFilter> objectFilters, FilterType subs) {
+        return objectFilters.stream()
+                .filter(f -> f.getFilterType() == subs)
+                .map(FriendshipFilter::getSubject)
+                .collect(Collectors.toSet());
     }
 }

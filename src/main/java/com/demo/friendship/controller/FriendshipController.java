@@ -93,4 +93,14 @@ public class FriendshipController {
         }, taskExecutor);
         return deferredResult;
     }
+
+    @RequestMapping(value = "/update-recipients", method = RequestMethod.POST, consumes = APPLICATION_JSON_UTF8_VALUE, produces = APPLICATION_JSON_UTF8_VALUE)
+    public DeferredResult<BaseResp> getRecipients(@Valid @RequestBody SendUpdateReq req) {
+        DeferredResult<BaseResp> deferredResult = new DeferredResult<>();
+        CompletableFuture.runAsync(() -> {
+            SendUpdateResp resp = friendshipService.getUpdateRecipients(req);
+            deferredResult.setResult(resp);
+        }, taskExecutor);
+        return deferredResult;
+    }
 }

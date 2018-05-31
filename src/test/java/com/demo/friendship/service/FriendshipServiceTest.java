@@ -4,10 +4,9 @@ import com.demo.friendship.App;
 import com.demo.friendship.controller.exception.ConnectionRejectException;
 import com.demo.friendship.controller.message.CreateFriendshipConnectionReq;
 import com.demo.friendship.controller.message.RelationshipFilterReq;
-import com.demo.friendship.repository.FilterType;
-import com.demo.friendship.repository.FriendConnectionRepository;
-import com.demo.friendship.repository.FriendshipFilter;
-import com.demo.friendship.repository.FriendshipFilterRepository;
+import com.demo.friendship.controller.message.SendUpdateReq;
+import com.demo.friendship.controller.message.SendUpdateResp;
+import com.demo.friendship.repository.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -120,5 +119,69 @@ public class FriendshipServiceTest {
         friendshipService.blockUserUpdate(new RelationshipFilterReq("andy@example.com", "henry@example.com"));
         FriendshipFilter updated = friendshipFilterRepository.findBySubjectAndObject("andy@example.com", "henry@example.com");
         assertEquals(FilterType.BLOCK, updated.getFilterType());
+    }
+
+    @Test
+    public void testGetUpdateRecipientsWhenFilterHasSubs() throws Exception {
+        // set up existing subs relationship
+        FriendshipFilter blockFilter = new FriendshipFilter("lisa@example.com", "john@example.com", FilterType.SUBS);
+        friendshipFilterRepository.save(blockFilter);
+
+        SendUpdateReq req = new SendUpdateReq("john@example.com", "Hello World! kate@example.com");
+        SendUpdateResp resp = friendshipService.getUpdateRecipients(req);
+
+        List<String> recipients = resp.getRecipients();
+        assertEquals(2, recipients.size());
+        assertTrue(recipients.contains("lisa@example.com"));
+        assertTrue(recipients.contains("kate@example.com"));
+    }
+
+    @Test
+    public void testGetUpdateRecipientsWhenFilterHasBlock() throws Exception {
+        // set up existing subs relationship
+        FriendshipFilter blockFilter = new FriendshipFilter("lisa@example.com", "john@example.com", FilterType.BLOCK);
+        friendshipFilterRepository.save(blockFilter);
+
+        SendUpdateReq req = new SendUpdateReq("john@example.com", "Hello World! kate@example.com");
+        SendUpdateResp resp = friendshipService.getUpdateRecipients(req);
+
+        List<String> recipients = resp.getRecipients();
+        assertEquals(1, recipients.size());
+        assertTrue(recipients.contains("kate@example.com"));
+    }
+
+    @Test
+    public void testGetUpdateRecipientsWhenNoRecipient() throws Exception {
+        // set up existing subs relationship
+        FriendshipFilter blockFilter = new FriendshipFilter("lisa@example.com", "john@example.com", FilterType.BLOCK);
+        friendshipFilterRepository.save(blockFilter);
+
+        SendUpdateReq req = new SendUpdateReq("john@example.com", "Hello World!");
+        SendUpdateResp resp = friendshipService.getUpdateRecipients(req);
+
+        List<String> recipients = resp.getRecipients();
+        assertEquals(0, recipients.size());
+    }
+
+    @Test
+    public void testGetUpdateRecipientsWhenHasBlokHasSubsHasConnection() throws Exception {
+        // set up existing subs relationship
+        FriendshipFilter filter1 = new FriendshipFilter("lisa@example.com", "john@example.com", FilterType.SUBS);
+        FriendshipFilter filter2 = new FriendshipFilter("andy@example.com", "john@example.com", FilterType.BLOCK);
+        friendshipFilterRepository.saveAll(Arrays.asList(filter1, filter2));
+        // set up existing connection
+        FriendConnection connection1 = new FriendConnection(Arrays.asList("john@example.com", "tony@example.com"));
+        FriendConnection connection2 = new FriendConnection(Arrays.asList("john@example.com", "lisa@example.com"));
+        friendConnectionRepository.saveAll(Arrays.asList(connection1, connection2));
+
+
+        SendUpdateReq req = new SendUpdateReq("john@example.com", "Hello World! kate@example.com");
+        SendUpdateResp resp = friendshipService.getUpdateRecipients(req);
+
+        List<String> recipients = resp.getRecipients();
+        assertEquals(3, recipients.size());
+        assertTrue(recipients.contains("lisa@example.com"));
+        assertTrue(recipients.contains("kate@example.com"));
+        assertTrue(recipients.contains("tony@example.com"));
     }
 }
