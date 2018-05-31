@@ -29,10 +29,12 @@ public class CreateFriendshipConnectionReq {
             throw new RequestValidationException("Invalid request, friends size should be 2");
         }
 
-        for (String friend: friends) {
-            if (StringUtils.isBlank(friend)) {
-                throw new RequestValidationException("Invalid request, friend email addresses should not be blank");
-            }
+        if (StringUtils.isBlank(friends.get(0)) || StringUtils.isBlank(friends.get(1))) {
+            throw new RequestValidationException("Invalid request, friend email addresses should not be blank");
+        }
+
+        if (friends.get(0).equals(friends.get(1))) {
+            throw new RequestValidationException("Invalid request, you cannot connect to yourself");
         }
     }
 

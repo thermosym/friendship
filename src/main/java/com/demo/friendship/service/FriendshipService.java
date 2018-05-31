@@ -22,8 +22,8 @@ public class FriendshipService {
     @Transactional(rollbackFor = Exception.class)
     public void createConnection(CreateFriendshipConnectionReq req) throws ConnectionRejectException {
         FriendConnection connection = new FriendConnection(req.getFriends());
-        FriendConnection existingConnection = friendConnectionRepository.findFirstByUserAAndUserB(connection.getUserA(), connection.getUserB());
-        if (existingConnection == null) {
+        long count = friendConnectionRepository.countByUserAAndUserB(connection.getUserA(), connection.getUserB());
+        if (count == 0) {
             FriendConnection savedConnection = friendConnectionRepository.save(connection);
             log.info("Created new friend connection {}", savedConnection);
         } else {

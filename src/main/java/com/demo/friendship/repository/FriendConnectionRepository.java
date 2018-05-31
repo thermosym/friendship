@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface FriendConnectionRepository extends JpaRepository<FriendConnection, Long> {
 
-    FriendConnection findFirstByUserAAndUserB(String userA, String userB);
+    long countByUserAAndUserB(String userA, String userB);
 
     @Query(value = "select distinct user_b as uid from friend_connection where user_a = :userId " +
             " union all " +

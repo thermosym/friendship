@@ -37,14 +37,14 @@ public class FriendConnectionRepositoryTest {
 
     @Test
     public void testGetFriendConnectionWhenConnectionNotExistWillReturnNull() {
-        FriendConnection result = friendConnectionRepository.findFirstByUserAAndUserB("andy@example.com", "christ@example.com");
-        assertNull(result);
+        long count = friendConnectionRepository.countByUserAAndUserB("andy@example.com", "christ@example.com");
+        assertEquals(0, count);
     }
 
     @Test
     public void testGetFriendConnectionWhenConnectionExistWillReturnTheConnection() {
-        FriendConnection result = friendConnectionRepository.findFirstByUserAAndUserB("andy@example.com", "common@example.com");
-        assertNotNull(result);
+        long count = friendConnectionRepository.countByUserAAndUserB("andy@example.com", "common@example.com");
+        assertEquals(2, count);
     }
 
     @Test

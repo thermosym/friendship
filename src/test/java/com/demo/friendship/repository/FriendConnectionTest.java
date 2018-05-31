@@ -27,14 +27,14 @@ public class FriendConnectionTest {
         });
     }
 
-    @Parameter // first data value (0) is default
-    public /* NOT private */ List<String> inputUserList;
+    @Parameter
+    public List<String> inputUserList;
 
     @Parameter(1)
-    public /* NOT private */ String expectedUserA;
+    public String expectedUserA;
 
     @Parameter(2)
-    public /* NOT private */ String expectedUserB;
+    public String expectedUserB;
 
     @Test
     public void testCreateFriendConnectionEntityByList() {
