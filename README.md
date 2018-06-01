@@ -11,9 +11,16 @@ In real production environment, API needs authentication. The following steps ar
 - When user login, get a JWT signed by server side, which contains user account info (user id/email)
 - Each API sent by user, need to add JWT in HTTP headers
 - On processing user request, server side will validate the JWT
-- For each API, can append an uid query string, then use the uid to check whether it matches with the user id in JWT
 
 ### Desgin details
+
+#### API Error Response
+```
+{
+  "success": false,
+  "errorMsg": "xxxx"
+}
+```
 
 #### User Stories
 
@@ -208,6 +215,17 @@ CREATE TABLE `friendship_filter` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ```
+
+### Friendship connection
+Table `friend_connection` is used to persist the friendship connection. If user X create Connection with user Y, there will be only one record added in the table.
+
+If in alphabetical order, X < Y, then the record is [`user_a`=X, `user_b`=Y].
+If in alphabetical order, Y < X, then the record is [`user_a`=Y, `user_b`=X].
+
+### Update Subscription & Block function
+Table friendship_filter is used to persist these two records. `filter_type` can be either `SUBS`(subscribe), `BLOCK`, `filter_subject` is requestor, `filter_object` is the target.
+
+If there is an existing record user X subscribe Y, then the following user X block Y will update the existing record.
 
 ## how to build
 ```bash
